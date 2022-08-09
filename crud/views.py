@@ -2,8 +2,9 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
-from .models import Movie
-from .serializers import MovieListSerializers
+from .models import Movie, Review
+from .serializers import MovieListSerializers, ReviewSerializers
+
 # Create your views here.
 @api_view(['GET', 'POST'])
 def movie_list_create(request):
@@ -46,3 +47,57 @@ def movie_detail_update_delete(request, movie_pk):
             'movie':movie_pk
         }
         return Response(data)
+
+# 
+
+@api_view(['GET', 'POST'])
+def review_list_create(request):
+    
+    if request.method == 'GET':
+        reviews = Review.objects.all()
+        serializer = MovieListSerializers(reviews, many=True)
+        
+        return Response(data=serializer.data)
+    
+    if request.method == 'POST':
+
+        serializer = ReviewSerializers(data=request.data)
+        
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data)
+        
+
+
+@api_view(['GET'])
+def review_detail_update_delete(request, review_pk):
+    review =get_object_or_404(Movie, pk=review_pk)
+    
+    if request.method == 'GET':
+        serializer = ReviewSerializers(review)
+        
+        return Response(serializer.data)
+    
+    elif request.method == "PATCH":
+        serializer = ReviewSerializers(instance=review, data = request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+
+    elif request.method == "DELETE":
+        review.delete()
+        data = {
+            'movie':review_pk
+        }
+        return Response(data)
+    
+    
+    # path('review_create/', views.review_create),
+    # path('<int:movie_pk>/review_list/', views.review_list),
+    # path('<int:review_pk>/review_update_delete/', views.review_update_delete),
+    
+    
+
+
+
