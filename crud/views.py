@@ -48,14 +48,15 @@ def movie_detail_update_delete(request, movie_pk):
         }
         return Response(data)
 
-# 
+# /////////////////////////////////////////////////////////////
+# 리뷰 일대다 관계
 
 @api_view(['GET', 'POST'])
 def review_list_create(request):
-    
+
     if request.method == 'GET':
         reviews = Review.objects.all()
-        serializer = MovieListSerializers(reviews, many=True)
+        serializer = ReviewSerializers(reviews, many=True)
         
         return Response(data=serializer.data)
     
@@ -71,7 +72,7 @@ def review_list_create(request):
 
 @api_view(['GET'])
 def review_detail_update_delete(request, review_pk):
-    review =get_object_or_404(Movie, pk=review_pk)
+    review =get_object_or_404(Review, pk=review_pk)
     
     if request.method == 'GET':
         serializer = ReviewSerializers(review)

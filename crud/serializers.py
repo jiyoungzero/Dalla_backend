@@ -4,7 +4,7 @@ from .models import *
 class MovieListSerializers(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = ('id', 'name', 'content','created_at','updated_at')
+        fields = '__all__'
         
 class ReviewSerializers(serializers.ModelSerializer):
     class Meta:
