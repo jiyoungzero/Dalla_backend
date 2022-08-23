@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 
 from .models import Movie, Review
 from .serializers import MovieListSerializers, ReviewSerializers
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 # Create your views here.
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def movie_list_create(request):
     
     if request.method == 'GET':
@@ -25,7 +27,8 @@ def movie_list_create(request):
         
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def movie_detail_update_delete(request, movie_pk):
     movie =get_object_or_404(Movie, pk=movie_pk)
     
@@ -54,6 +57,7 @@ def movie_detail_update_delete(request, movie_pk):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def review_list_create(request,movie_pk): 
     #get 요청에서 특정 movie의 리뷰리스트 받기 위해 movie_pk 파라미터로 받음
 
@@ -75,6 +79,7 @@ def review_list_create(request,movie_pk):
 
 
 @api_view(['GET','PATCH','DELETE'])
+@permission_classes([IsAuthenticated])
 def review_detail_update_delete(request, review_pk, movie_pk): 
     #여기도 역시 특정 movie의 review 디테일을 보는거니까 movie_pk 값도 파라미터로 받는게 좋겠지?
     
@@ -101,7 +106,7 @@ def review_detail_update_delete(request, review_pk, movie_pk):
         review.delete()
         data = {
             # 'movie':review_pk 
-            'review':review_pk #여기도 특정 리뷰를 지워야 하니 키값을 'review'로 해야겠지?
+            'review':f"리뷰 id={review_pk}이(가) 삭제되었습니다." #여기도 특정 리뷰를 지워야 하니 키값을 'review'로 해야겠지?
         }
         return Response(data)
     
