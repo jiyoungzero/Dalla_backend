@@ -40,7 +40,16 @@ INSTALLED_APPS = [
     
     'crud',
     'rest_framework',
+    'accounts',
+    'rest_framework_simplejwt',
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES" : [
+        # "accounts.authentications.JWTAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
