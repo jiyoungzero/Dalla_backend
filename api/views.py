@@ -1,17 +1,8 @@
 from __future__ import division
 from django.shortcuts import render
-
 import time
-
-from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.template import loader
-import requests
-import json
-
-import re
 import sys
-
 from google.cloud import speech
 import pyaudio
 # import six 
@@ -19,7 +10,11 @@ import queue
 # from six.moves import queue
 from threading import Thread
 import time
-
+# rest_framework
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from django.views.decorators.http import require_GET
+from rest_framework import status
 # Audio recording parameters
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
@@ -98,7 +93,6 @@ class MicrophoneStream(object):
 
 
 # [END audio_stream]
-
 
 
 class Gspeech(Thread):
@@ -183,120 +177,40 @@ class Gspeech(Thread):
 ###
 ###
 ###
-
-def apic(request):
+@require_GET
+@api_view(["GET"])
+def menu(request):
     gsp = Gspeech()
+    res = {}
+    start = time.time() # 음성인식 시작
     while True:
         stt = gsp.getText()
         if stt is None:
             break
-        print(stt)
         time.sleep(0.01)
         break
-    return render(request, 'button.html', {'result':stt})
+
+    # if time.time()-start > 1:
+    #     res["status"] = "400"
+    #     res["success"] = "false"
+    #     res["message"] = "[time-out] 음성인식 실패"
+    #     return Response(data=res)
+    if len(stt) > 0:
+        res["status"] = "200"
+        res["success"] = "true"
+        res["message"] = "음성인식 성공"
+        res["data"] = stt
+
+
+    print(res)
+    return Response(data=res)
+
+
+    # return render(request, 'button.html', {'result':stt}) 
     # return HttpResponse(str(stt))
 
 
-# # 인증키 : dc17f42ec0927fb4b40b8ae0c0066050
-# import wave
-# import asyncio
-# import datetime
-# import asyncio
-# import json
-# from os.path import exists
-# # OpenSources, need install
-# # https://pypi.org/project/websockets/
-# import websockets
-# # https://pypi.org/project/aiofile/
-# from aiofile import AIOFile, Reader
 
-# class WebSocketClient():
-#     # Custom class for handling websocket client
-#     def __init__(self, url, onStartMessage, bits_per_seconds):
-#         self.url=url
-#         # chunk size is depend on sendfile duration, which is now 0.02s(20ms)
-#         # set chunk size as byte unit
-#         self.chunksize=bits_per_seconds*0.02/8
-#         self.onStartMessage = onStartMessage
-#         pass
-
-#     async def connect(self):
-#         self.connection = await websockets.connect(self.url)
-#         if self.connection.open:
-#             await self.connection.send(json.dumps(self.onStartMessage))
-#             return self.connection
-
-#     async def receiveMessage(self, connection):
-#         while True:
-#             try:
-#                 message = await connection.recv()
-#                 print(message)
-#             except websockets.exceptions.ConnectionClosed as e:
-#                 print('Connection with server closed')
-#                 break
-#             except Exception as e:
-#                 print(e)
-
-#     async def sendfile(self, connection, filepath):
-#         try:
-#             async with AIOFile(filepath, 'rb') as afp:
-#                 reader = Reader(afp, chunk_size=self.chunksize)
-#                 async for chunk in reader:
-#                     await connection.send(chunk)
-#                     await asyncio.sleep(0.02)
-#         except Exception as e:
-#             print(e)
-
-# def argsChecks(args):
-#     # Check given arguments are valid
-#     # Plase check guide for more details
-#     if not exists(args["filepath"]):
-#         raise "Please give exist filepath in filepath args"
-    
-#     filepath = args["filepath"]
-#     onStartMessage = {
-#         "type": "recogStart",
-#         "service": "DICTATION",
-#         "requestId": "GNTWSC-{}".format(datetime.datetime.now().strftime('%Y%m%d%H%M%S')),
-#         "showFinalOnly": args["showFinalOnly"],
-#         "showExtraInfo": args["showExtraInfo"],
-#     }
-#     if filepath.endswith(".wav"):
-            
-#         with wave.open(filepath, 'rb') as wf:
-#             bit_depth = wf.getsampwidth() * 8
-#             samplerate = wf.getframerate()
-#             channels = wf.getnchannels()
-#             onStartMessage["audioFormat"] = "RAWPCM/{bitDepth}/{sampleRate}/{channel}/_/_".format(bitDepth=bit_depth, sampleRate=samplerate, channel=channels)
-#             bits_per_seconds = bit_depth * samplerate * channels
-#     else:
-#             # If file is PCM data
-#             onStartMessage["audioFormat"] = "RAWPCM/16/16000/1/_/_"
-#             bits_per_seconds = 256000
-#     return args["url"], filepath, onStartMessage, bits_per_seconds
-
-# if __name__ == '__main__':
-#     args = {
-#         "url": "wss://6471d23f-5937-4bcd-ba58-ca4de6dcda15.api.kr-central-1.kakaoi.io/ai/speech-to-text/ws/long?signature=9793206ecc9144aea3d42a7ab93f1108&x-api-key=dc17f42ec0927fb4b40b8ae0c0066050",
-#         "filepath": "{FILE PATH}",
-#         "showFinalOnly": False,
-#         "showExtraInfo": False,
-#     }
-    
-#     url, filepath, onStartMessage, bits_per_seconds = argsChecks(args)
-
-#     # Creating client object
-#     client = WebSocketClient(url, onStartMessage, bits_per_seconds)
-#     loop = asyncio.get_event_loop()
-#     # Start connecting
-#     connection = loop.run_until_complete(client.connect())
-#     # Define async jobs
-#     tasks = [
-#         asyncio.ensure_future(client.sendfile(connection, filepath)),
-#         asyncio.ensure_future(client.receiveMessage(connection)),
-#     ]
-#     # Run async jobs
-#     loop.run_until_complete(asyncio.wait(tasks))
 
 
 
