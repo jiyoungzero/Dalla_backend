@@ -28,5 +28,6 @@ virtualenv==20.14.0
 virtualenv-clone==0.5.7
 websockets==11.0.2
 Werkzeug==2.2.2
+rsa==4.9
 whitenoise==6.2.0
 
